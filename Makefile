@@ -1,4 +1,4 @@
-.PHONY: build fmt lint vet check
+.PHONY: build fmt lint vet test check
 
 build:
 	go build -o envio .
@@ -13,4 +13,7 @@ lint:
 vet:
 	go vet ./...
 
-check: fmt vet lint build
+test:
+	go test ./...
+
+check: fmt vet lint test build

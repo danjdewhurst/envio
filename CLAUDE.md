@@ -8,13 +8,23 @@ Envio is a Go CLI tool that generates and manages local Docker development envir
 
 ```bash
 # Build
-go build -o envio .
+make build
 
 # Run
 go run .
 
-# Build check (all packages)
-go build ./...
+# All checks (fmt, vet, lint, build)
+make check
+```
+
+## Linting & Formatting
+
+```bash
+make fmt       # Auto-fix formatting (gofmt + goimports)
+make lint      # Run golangci-lint
+make vet       # Run go vet
+make test      # Run tests
+make check     # Run all of the above
 ```
 
 ## Architecture
