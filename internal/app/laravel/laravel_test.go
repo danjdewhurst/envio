@@ -60,3 +60,63 @@ func TestLaravelDefaultEnv(t *testing.T) {
 		t.Errorf("expected APP_ENV=local, got %s", env["APP_ENV"])
 	}
 }
+
+func TestLaravelVariants(t *testing.T) {
+	l := New()
+	variants := l.Variants()
+
+	if len(variants) != 1 || variants[0] != "frankenphp" {
+		t.Errorf("expected [frankenphp], got %v", variants)
+	}
+}
+
+func TestLaravelSetVariantInvalid(t *testing.T) {
+	l := New()
+	if err := l.SetVariant("nonexistent"); err == nil {
+		t.Error("expected error for invalid variant")
+	}
+}
+
+func TestLaravelFrankenPHP(t *testing.T) {
+	l := New()
+	if err := l.SetVariant("frankenphp"); err != nil {
+		t.Fatalf("SetVariant failed: %v", err)
+	}
+
+	// Should have a single service
+	services := l.Services()
+	if len(services) != 1 {
+		t.Fatalf("expected 1 service for frankenphp, got %d", len(services))
+	}
+
+	svc := services[0]
+	if svc.Name != "app" {
+		t.Errorf("expected service name 'app', got %s", svc.Name)
+	}
+	if svc.Image != "dunglas/frankenphp:latest-php8.3" {
+		t.Errorf("expected frankenphp image, got %s", svc.Image)
+	}
+
+	// Should expose ports 80 and 443
+	portMap := map[string]bool{}
+	for _, p := range svc.Ports {
+		portMap[p] = true
+	}
+	if !portMap["80:80"] {
+		t.Error("missing port 80:80")
+	}
+	if !portMap["443:443"] {
+		t.Error("missing port 443:443")
+	}
+
+	// Description should mention FrankenPHP
+	if l.Description() != "PHP Laravel application with FrankenPHP" {
+		t.Errorf("unexpected description: %s", l.Description())
+	}
+
+	// DefaultEnv should include SERVER_NAME
+	env := l.DefaultEnv()
+	if env["SERVER_NAME"] != ":80" {
+		t.Errorf("expected SERVER_NAME=:80, got %s", env["SERVER_NAME"])
+	}
+}

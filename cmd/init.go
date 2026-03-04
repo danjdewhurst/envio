@@ -6,11 +6,13 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/danjdewhurst/envio/internal/app"
 	"github.com/danjdewhurst/envio/internal/compose"
 	"github.com/danjdewhurst/envio/internal/config"
 )
 
 var initAddons []string
+var initVariant string
 
 var initCmd = &cobra.Command{
 	Use:   "init [app]",
@@ -29,7 +31,7 @@ var initCmd = &cobra.Command{
 			return fmt.Errorf("envio project already exists in this directory")
 		}
 
-		app, err := reg.GetApp(appName)
+		selectedApp, err := reg.GetApp(appName)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Unknown app: %s\n\nAvailable apps:\n", appName)
 			for _, a := range reg.ListApps() {
@@ -38,8 +40,19 @@ var initCmd = &cobra.Command{
 			return fmt.Errorf("unknown app: %s", appName)
 		}
 
+		// Apply variant if specified
+		if initVariant != "" {
+			va, ok := selectedApp.(app.VariantApp)
+			if !ok {
+				return fmt.Errorf("app %q does not support variants", appName)
+			}
+			if err := va.SetVariant(initVariant); err != nil {
+				return err
+			}
+		}
+
 		// Validate addons
-		available := app.AvailableAddons()
+		available := selectedApp.AvailableAddons()
 		for _, addonName := range initAddons {
 			if _, err := reg.GetAddon(addonName); err != nil {
 				return err
@@ -52,7 +65,7 @@ var initCmd = &cobra.Command{
 				}
 			}
 			if !found {
-				return fmt.Errorf("addon %q is not compatible with %s", addonName, app.DisplayName())
+				return fmt.Errorf("addon %q is not compatible with %s", addonName, selectedApp.DisplayName())
 			}
 		}
 
@@ -60,16 +73,16 @@ var initCmd = &cobra.Command{
 		cf := compose.NewComposeFile()
 		cf.AddNetwork(compose.Network{Name: "envio", Driver: "bridge"})
 
-		for _, svc := range app.Services() {
+		for _, svc := range selectedApp.Services() {
 			cf.AddService(svc)
 		}
-		for _, vol := range app.Volumes() {
+		for _, vol := range selectedApp.Volumes() {
 			cf.AddVolume(vol)
 		}
 
 		// Collect environment variables from app defaults and addons
 		env := make(map[string]string)
-		for k, v := range app.DefaultEnv() {
+		for k, v := range selectedApp.DefaultEnv() {
 			env[k] = v
 		}
 
@@ -106,14 +119,18 @@ var initCmd = &cobra.Command{
 
 		// Save envio config
 		cfg := &config.ProjectConfig{
-			App:    appName,
-			Addons: initAddons,
+			App:     appName,
+			Variant: initVariant,
+			Addons:  initAddons,
 		}
 		if err := config.Save(dir, cfg); err != nil {
 			return fmt.Errorf("failed to save config: %w", err)
 		}
 
-		fmt.Printf("Initialized %s environment", app.DisplayName())
+		fmt.Printf("Initialized %s environment", selectedApp.DisplayName())
+		if initVariant != "" {
+			fmt.Printf(" (variant: %s)", initVariant)
+		}
 		if len(initAddons) > 0 {
 			fmt.Printf(" with addons: %v", initAddons)
 		}
@@ -129,5 +146,6 @@ var initCmd = &cobra.Command{
 
 func init() {
 	initCmd.Flags().StringSliceVarP(&initAddons, "addon", "a", nil, "Addons to include (e.g. --addon redis --addon mysql)")
+	initCmd.Flags().StringVarP(&initVariant, "variant", "v", "", "App variant to use (e.g. --variant frankenphp)")
 	rootCmd.AddCommand(initCmd)
 }
