@@ -8,19 +8,14 @@ linters:
     - unused
     - ineffassign
     - misspell
+  settings:
+    misspell:
+      locale: US
 
 formatters:
   enable:
     - goimports
-
   settings:
     goimports:
       local-prefixes:
         - github.com/danjdewhurst/envio
-
-linters-settings:
-  misspell:
-    locale: US
-
-issues:
-  exclude-use-default: false
