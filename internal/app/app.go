@@ -37,3 +37,15 @@ type VariantApp interface {
 	// SetVariant configures the app to use the given variant.
 	SetVariant(variant string) error
 }
+
+// ScaffoldFile represents a file to be created during project initialization.
+type ScaffoldFile struct {
+	Path    string
+	Content string
+}
+
+// Scaffolder is an optional interface that apps can implement to provide
+// additional files (e.g. Dockerfiles, config files) during initialization.
+type Scaffolder interface {
+	ScaffoldFiles() []ScaffoldFile
+}

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 
@@ -117,6 +118,21 @@ var initCmd = &cobra.Command{
 			return fmt.Errorf("failed to generate docker-compose.yml: %w", err)
 		}
 
+		// Write scaffold files if the app provides them
+		var scaffoldPaths []string
+		if scaffolder, ok := selectedApp.(app.Scaffolder); ok {
+			for _, f := range scaffolder.ScaffoldFiles() {
+				fullPath := filepath.Join(dir, f.Path)
+				if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+					return fmt.Errorf("failed to create directory for %s: %w", f.Path, err)
+				}
+				if err := os.WriteFile(fullPath, []byte(f.Content), 0644); err != nil {
+					return fmt.Errorf("failed to write %s: %w", f.Path, err)
+				}
+				scaffoldPaths = append(scaffoldPaths, f.Path)
+			}
+		}
+
 		// Save envio config
 		cfg := &config.ProjectConfig{
 			App:     appName,
@@ -138,6 +154,9 @@ var initCmd = &cobra.Command{
 		fmt.Println("\nGenerated files:")
 		fmt.Println("  - docker-compose.yml")
 		fmt.Println("  - envio.yaml")
+		for _, p := range scaffoldPaths {
+			fmt.Printf("  - %s\n", p)
+		}
 		fmt.Println("\nRun 'envio up' to start your environment.")
 
 		return nil
