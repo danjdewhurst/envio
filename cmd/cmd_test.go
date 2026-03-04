@@ -113,6 +113,56 @@ func TestInitCommandDuplicateProject(t *testing.T) {
 	}
 }
 
+func TestInitCommandWithVariant(t *testing.T) {
+	dir := t.TempDir()
+	chdir(t, dir)
+
+	// Reset flags from previous tests
+	initAddons = nil
+	initVariant = ""
+
+	rootCmd.SetArgs([]string{"init", "laravel", "--variant", "frankenphp"})
+	if err := rootCmd.Execute(); err != nil {
+		t.Fatalf("init command with variant failed: %v", err)
+	}
+
+	// Check docker-compose.yml uses frankenphp image
+	data, err := os.ReadFile(filepath.Join(dir, "docker-compose.yml"))
+	if err != nil {
+		t.Fatalf("failed to read compose file: %v", err)
+	}
+	content := string(data)
+	if !stringContains(content, "frankenphp") {
+		t.Error("compose file should contain frankenphp image")
+	}
+	// Should NOT have a separate web/nginx service
+	if stringContains(content, "nginx") {
+		t.Error("compose file should not contain nginx when using frankenphp")
+	}
+
+	// Check envio.yaml has variant
+	cfgData, err := os.ReadFile(filepath.Join(dir, "envio.yaml"))
+	if err != nil {
+		t.Fatalf("failed to read config: %v", err)
+	}
+	if !stringContains(string(cfgData), "variant: frankenphp") {
+		t.Error("config should contain variant: frankenphp")
+	}
+}
+
+func TestInitCommandInvalidVariant(t *testing.T) {
+	dir := t.TempDir()
+	chdir(t, dir)
+
+	initAddons = nil
+	initVariant = ""
+
+	rootCmd.SetArgs([]string{"init", "laravel", "--variant", "nonexistent"})
+	if err := rootCmd.Execute(); err == nil {
+		t.Error("init should fail for invalid variant")
+	}
+}
+
 func TestAppsCommand(t *testing.T) {
 	rootCmd.SetArgs([]string{"apps"})
 	if err := rootCmd.Execute(); err != nil {

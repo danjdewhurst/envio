@@ -27,3 +27,13 @@ type App interface {
 	// AvailableAddons returns the names of addons compatible with this app.
 	AvailableAddons() []string
 }
+
+// VariantApp is an optional interface that apps can implement to support
+// variants (e.g. Laravel with FrankenPHP instead of Nginx+PHP-FPM).
+type VariantApp interface {
+	App
+	// Variants returns the available variant names for this app.
+	Variants() []string
+	// SetVariant configures the app to use the given variant.
+	SetVariant(variant string) error
+}

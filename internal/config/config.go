@@ -11,8 +11,9 @@ const configFile = "envio.yaml"
 
 // ProjectConfig represents the saved project configuration.
 type ProjectConfig struct {
-	App    string   `yaml:"app"`
-	Addons []string `yaml:"addons,omitempty"`
+	App     string   `yaml:"app"`
+	Variant string   `yaml:"variant,omitempty"`
+	Addons  []string `yaml:"addons,omitempty"`
 }
 
 // Load reads the project config from the given directory.
