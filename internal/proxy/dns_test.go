@@ -6,11 +6,6 @@ import (
 	"testing"
 )
 
-func TestIsDNSConfigured(t *testing.T) {
-	// Just verify it returns a bool without panicking.
-	_ = IsDNSConfigured()
-}
-
 func TestWriteComposeFileCreatesDirectory(t *testing.T) {
 	dir := filepath.Join(t.TempDir(), "nested", "dir")
 

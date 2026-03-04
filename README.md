@@ -47,7 +47,6 @@ envio down
 | `envio proxy start` | Start the shared Traefik reverse proxy |
 | `envio proxy stop` | Stop the proxy |
 | `envio proxy status` | Check if the proxy is running |
-| `envio proxy setup-dns` | Configure dnsmasq for `.test` domains (macOS) |
 | `envio proxy setup-tls` | Install the mkcert root CA for trusted HTTPS |
 
 ### `envio init`

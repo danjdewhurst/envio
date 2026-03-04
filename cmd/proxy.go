@@ -51,14 +51,6 @@ var proxyStatusCmd = &cobra.Command{
 	},
 }
 
-var proxySetupDNSCmd = &cobra.Command{
-	Use:   "setup-dns",
-	Short: "Configure dnsmasq to resolve *.test domains (macOS only)",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return proxy.SetupDNS()
-	},
-}
-
 var proxySetupTLSCmd = &cobra.Command{
 	Use:   "setup-tls",
 	Short: "Install the mkcert root CA for locally-trusted HTTPS certificates",
@@ -71,7 +63,6 @@ func init() {
 	proxyCmd.AddCommand(proxyStartCmd)
 	proxyCmd.AddCommand(proxyStopCmd)
 	proxyCmd.AddCommand(proxyStatusCmd)
-	proxyCmd.AddCommand(proxySetupDNSCmd)
 	proxyCmd.AddCommand(proxySetupTLSCmd)
 	rootCmd.AddCommand(proxyCmd)
 }
