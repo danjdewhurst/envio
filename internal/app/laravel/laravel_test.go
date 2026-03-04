@@ -122,8 +122,14 @@ func TestLaravelFrankenPHP(t *testing.T) {
 	if svc.Name != "app" {
 		t.Errorf("expected service name 'app', got %s", svc.Name)
 	}
-	if svc.Image != "dunglas/frankenphp:latest-php8.4" {
-		t.Errorf("expected frankenphp php8.4 image, got %s", svc.Image)
+	if svc.Build == nil {
+		t.Fatal("expected app service to use Build config, got nil")
+	}
+	if svc.Build.Dockerfile != "docker/php/Dockerfile" {
+		t.Errorf("expected Dockerfile docker/php/Dockerfile, got %s", svc.Build.Dockerfile)
+	}
+	if svc.Image != "" {
+		t.Errorf("expected no Image when using Build, got %s", svc.Image)
 	}
 
 	// Should expose ports 80 and 443
@@ -201,11 +207,28 @@ func TestLaravelFrankenPHPScaffoldFiles(t *testing.T) {
 
 	files := l.ScaffoldFiles()
 
-	// FrankenPHP should only produce opcache.ini (no Dockerfile)
-	if len(files) != 1 {
-		t.Fatalf("expected 1 scaffold file for frankenphp, got %d", len(files))
+	// FrankenPHP should produce opcache.ini + Dockerfile
+	if len(files) != 2 {
+		t.Fatalf("expected 2 scaffold files for frankenphp, got %d", len(files))
 	}
-	if files[0].Path != "docker/php/opcache.ini" {
-		t.Errorf("expected docker/php/opcache.ini, got %s", files[0].Path)
+
+	pathMap := map[string]string{}
+	for _, f := range files {
+		pathMap[f.Path] = f.Content
+	}
+
+	if _, ok := pathMap["docker/php/opcache.ini"]; !ok {
+		t.Fatal("missing docker/php/opcache.ini")
+	}
+
+	dockerfile, ok := pathMap["docker/php/Dockerfile"]
+	if !ok {
+		t.Fatal("missing docker/php/Dockerfile for frankenphp")
+	}
+	if !strings.Contains(dockerfile, "dunglas/frankenphp") {
+		t.Error("FrankenPHP Dockerfile should use dunglas/frankenphp base image")
+	}
+	if !strings.Contains(dockerfile, "pdo_mysql") {
+		t.Error("FrankenPHP Dockerfile should install pdo_mysql extension")
 	}
 }

@@ -126,14 +126,14 @@ func TestInitCommandWithVariant(t *testing.T) {
 		t.Fatalf("init command with variant failed: %v", err)
 	}
 
-	// Check docker-compose.yml uses frankenphp image
+	// Check docker-compose.yml uses a Dockerfile build (not a direct image)
 	data, err := os.ReadFile(filepath.Join(dir, "docker-compose.yml"))
 	if err != nil {
 		t.Fatalf("failed to read compose file: %v", err)
 	}
 	content := string(data)
-	if !stringContains(content, "frankenphp") {
-		t.Error("compose file should contain frankenphp image")
+	if !stringContains(content, "dockerfile: docker/php/Dockerfile") {
+		t.Error("compose file should use Dockerfile build for frankenphp variant")
 	}
 	// Should NOT have a separate web/nginx service
 	if stringContains(content, "nginx") {

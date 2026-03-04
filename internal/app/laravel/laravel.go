@@ -42,12 +42,14 @@ func (l *Laravel) Services() []compose.Service {
 	if l.variant == "frankenphp" {
 		return []compose.Service{
 			{
-				Name:  "app",
-				Image: "dunglas/frankenphp:latest-php8.4",
+				Name: "app",
+				Build: &compose.BuildConfig{
+					Context:    ".",
+					Dockerfile: "docker/php/Dockerfile",
+				},
 				Ports: []string{"80:80", "443:443"},
 				Volumes: []string{
 					".:/app",
-					"./docker/php/opcache.ini:/usr/local/etc/php/conf.d/opcache.ini",
 				},
 				Networks: []string{"envio"},
 				Restart:  "unless-stopped",
@@ -128,6 +130,31 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 `
 
+const frankenphpDockerfile = `FROM dunglas/frankenphp:php8.4
+
+# Install system dependencies and PHP extensions
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd \
+    && rm -rf /var/lib/apt/lists/*
+
+# Enable and configure OPcache
+RUN docker-php-ext-enable opcache
+
+COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /app
+`
+
 const opcacheINI = `[opcache]
 opcache.enable=1
 opcache.memory_consumption=256
@@ -143,7 +170,12 @@ func (l *Laravel) ScaffoldFiles() []app.ScaffoldFile {
 	files := []app.ScaffoldFile{
 		{Path: "docker/php/opcache.ini", Content: opcacheINI},
 	}
-	if l.variant != "frankenphp" {
+	if l.variant == "frankenphp" {
+		files = append(files, app.ScaffoldFile{
+			Path:    "docker/php/Dockerfile",
+			Content: frankenphpDockerfile,
+		})
+	} else {
 		files = append(files, app.ScaffoldFile{
 			Path:    "docker/php/Dockerfile",
 			Content: phpDockerfile,
