@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"github.com/danjdewhurst/envio/internal/addon/mariadb"
 	"github.com/danjdewhurst/envio/internal/addon/meilisearch"
 	"github.com/danjdewhurst/envio/internal/addon/mysql"
 	"github.com/danjdewhurst/envio/internal/addon/postgres"
@@ -16,6 +17,7 @@ func Default() *Registry {
 	r.RegisterApp(laravel.New())
 
 	// Addons
+	r.RegisterAddon(mariadb.New())
 	r.RegisterAddon(mysql.New())
 	r.RegisterAddon(postgres.New())
 	r.RegisterAddon(redis.New())

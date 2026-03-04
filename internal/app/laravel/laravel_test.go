@@ -69,7 +69,7 @@ func TestLaravelAvailableAddons(t *testing.T) {
 	l := New()
 	addons := l.AvailableAddons()
 
-	expected := map[string]bool{"mysql": true, "postgres": true, "redis": true, "meilisearch": true}
+	expected := map[string]bool{"mariadb": true, "mysql": true, "postgres": true, "redis": true, "meilisearch": true}
 	for _, a := range addons {
 		if !expected[a] {
 			t.Errorf("unexpected addon: %s", a)
