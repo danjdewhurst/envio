@@ -7,8 +7,8 @@ type Redis struct{}
 func New() *Redis { return &Redis{} }
 
 func (r *Redis) Name() string        { return "redis" }
-func (r *Redis) DisplayName() string  { return "Redis" }
-func (r *Redis) Description() string  { return "Redis in-memory data store" }
+func (r *Redis) DisplayName() string { return "Redis" }
+func (r *Redis) Description() string { return "Redis in-memory data store" }
 
 func (r *Redis) Services() []compose.Service {
 	return []compose.Service{

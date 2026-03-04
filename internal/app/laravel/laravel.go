@@ -8,8 +8,8 @@ type Laravel struct{}
 func New() *Laravel { return &Laravel{} }
 
 func (l *Laravel) Name() string        { return "laravel" }
-func (l *Laravel) DisplayName() string  { return "Laravel" }
-func (l *Laravel) Description() string  { return "PHP Laravel application with Nginx and PHP-FPM" }
+func (l *Laravel) DisplayName() string { return "Laravel" }
+func (l *Laravel) Description() string { return "PHP Laravel application with Nginx and PHP-FPM" }
 
 func (l *Laravel) Services() []compose.Service {
 	return []compose.Service{

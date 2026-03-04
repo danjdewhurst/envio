@@ -7,8 +7,8 @@ type MySQL struct{}
 func New() *MySQL { return &MySQL{} }
 
 func (m *MySQL) Name() string        { return "mysql" }
-func (m *MySQL) DisplayName() string  { return "MySQL" }
-func (m *MySQL) Description() string  { return "MySQL 8.0 database server" }
+func (m *MySQL) DisplayName() string { return "MySQL" }
+func (m *MySQL) Description() string { return "MySQL 8.0 database server" }
 
 func (m *MySQL) Services() []compose.Service {
 	return []compose.Service{
