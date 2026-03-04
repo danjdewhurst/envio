@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/danjdewhurst/envio/compare/v1.1.0...v1.2.0) (2026-03-04)
+
+
+### Features
+
+* add one-line installer script ([42b43f4](https://github.com/danjdewhurst/envio/commit/42b43f4b8d81492eeeab75b811e8e2f57ca7ecf4))
+
 ## [1.1.0](https://github.com/danjdewhurst/envio/compare/v1.0.0...v1.1.0) (2026-03-04)
 
 
