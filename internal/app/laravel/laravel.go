@@ -100,7 +100,7 @@ func (l *Laravel) DefaultEnv() map[string]string {
 }
 
 func (l *Laravel) AvailableAddons() []string {
-	return []string{"mysql", "postgres", "redis", "meilisearch"}
+	return []string{"mariadb", "mysql", "postgres", "redis", "meilisearch"}
 }
 
 const phpDockerfile = `FROM php:8.4-fpm
