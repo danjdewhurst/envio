@@ -67,7 +67,7 @@ Generates a `docker-compose.yml` and `envio.yaml` in the current directory.
 
 By default, the Laravel app generates two services:
 
-- **app** — `php:8.3-fpm` with your project mounted at `/var/www/html`
+- **app** — `php:8.4-fpm` with your project mounted at `/var/www/html`
 - **web** — `nginx:alpine` serving on port 80, proxying to the app service
 
 #### FrankenPHP Variant
@@ -80,7 +80,7 @@ envio init laravel --variant frankenphp
 
 This generates a single service:
 
-- **app** — `dunglas/frankenphp:latest-php8.3` serving on ports 80 and 443, with your project mounted at `/app`
+- **app** — Built from a custom Dockerfile using `dunglas/frankenphp:php8.4` as the base image, with PHP extensions (pdo_mysql, mbstring, etc.), OPcache, and Composer pre-installed. Serves on ports 80 and 443, with your project mounted at `/app`
 
 #### Environment Variables
 
@@ -104,19 +104,23 @@ This adds the MySQL and Redis env vars to the `app` service automatically:
 
 | Addon | Variables |
 |-------|-----------|
+| MariaDB | `DB_CONNECTION=mysql`, `DB_HOST=mariadb`, `DB_PORT=3306`, `DB_DATABASE=envio`, `DB_USERNAME=envio`, `DB_PASSWORD=secret` |
 | MySQL | `DB_CONNECTION=mysql`, `DB_HOST=mysql`, `DB_PORT=3306`, `DB_DATABASE=envio`, `DB_USERNAME=envio`, `DB_PASSWORD=secret` |
 | PostgreSQL | `DB_CONNECTION=pgsql`, `DB_HOST=postgres`, `DB_PORT=5432`, `DB_DATABASE=envio`, `DB_USERNAME=envio`, `DB_PASSWORD=secret` |
 | Redis | `REDIS_HOST=redis`, `REDIS_PORT=6379` |
 | Meilisearch | `SCOUT_DRIVER=meilisearch`, `MEILISEARCH_HOST=http://meilisearch:7700`, `MEILISEARCH_NO_ANALYTICS=true` |
 
+Database credentials (`envio`/`secret`) are hardcoded for local development use. Both the app service and the database container receive the same values, ensuring they always match regardless of any `.env` file in your project.
+
 #### Compatible Addons
 
-`mysql`, `postgres`, `redis`, `meilisearch`
+`mariadb`, `mysql`, `postgres`, `redis`, `meilisearch`
 
 ## Supported Addons
 
 | Addon | Description |
 |-------|-------------|
+| `mariadb` | MariaDB 11.4 LTS |
 | `mysql` | MySQL 8.0 |
 | `postgres` | PostgreSQL 16 |
 | `redis` | Redis |

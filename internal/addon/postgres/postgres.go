@@ -17,9 +17,9 @@ func (p *Postgres) Services() []compose.Service {
 			Image: "postgres:16-alpine",
 			Ports: []string{"5432:5432"},
 			Environment: map[string]string{
-				"POSTGRES_DB":       "${DB_DATABASE:-envio}",
-				"POSTGRES_USER":     "${DB_USERNAME:-envio}",
-				"POSTGRES_PASSWORD": "${DB_PASSWORD:-secret}",
+				"POSTGRES_DB":       "envio",
+				"POSTGRES_USER":     "envio",
+				"POSTGRES_PASSWORD": "secret",
 			},
 			Volumes:  []string{"postgres_data:/var/lib/postgresql/data"},
 			Networks: []string{"envio"},
