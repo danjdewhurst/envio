@@ -26,8 +26,8 @@
 ## Quick Start
 
 ```bash
-# Install
-go install github.com/danjdewhurst/envio@latest
+# Install (auto-detects OS and architecture)
+curl -sL https://raw.githubusercontent.com/danjdewhurst/envio/main/install.sh | sh
 
 # Create a Laravel project with MySQL and Redis
 envio init laravel --addon mysql --addon redis
@@ -36,11 +36,10 @@ envio init laravel --addon mysql --addon redis
 envio up
 ```
 
-Or build from source:
+Or install via Go:
 
 ```bash
-git clone https://github.com/danjdewhurst/envio.git
-cd envio && go build -o envio .
+go install github.com/danjdewhurst/envio@latest
 ```
 
 ---
