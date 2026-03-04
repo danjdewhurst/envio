@@ -82,6 +82,59 @@ func TestGenerate(t *testing.T) {
 	}
 }
 
+func TestGenerateWithLabels(t *testing.T) {
+	dir := t.TempDir()
+
+	cf := NewComposeFile()
+	cf.AddService(Service{
+		Name:  "web",
+		Image: "nginx:alpine",
+		Labels: map[string]string{
+			"traefik.enable":                  "true",
+			"traefik.http.routers.myapp.rule": "Host(`myapp.test`)",
+		},
+	})
+
+	if err := Generate(dir, cf); err != nil {
+		t.Fatalf("Generate failed: %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(dir, "docker-compose.yml"))
+	if err != nil {
+		t.Fatalf("failed to read generated file: %v", err)
+	}
+
+	content := string(data)
+	if !contains(content, "traefik.enable") {
+		t.Error("generated file missing traefik.enable label")
+	}
+	if !contains(content, "Host(`myapp.test`)") {
+		t.Error("generated file missing Host rule label")
+	}
+}
+
+func TestGenerateWithExternalNetwork(t *testing.T) {
+	dir := t.TempDir()
+
+	cf := NewComposeFile()
+	cf.AddService(Service{Name: "app", Image: "nginx:alpine"})
+	cf.AddNetwork(Network{Name: "envio-proxy", External: true})
+
+	if err := Generate(dir, cf); err != nil {
+		t.Fatalf("Generate failed: %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(dir, "docker-compose.yml"))
+	if err != nil {
+		t.Fatalf("failed to read generated file: %v", err)
+	}
+
+	content := string(data)
+	if !contains(content, "external: true") {
+		t.Error("generated file missing external: true for network")
+	}
+}
+
 func TestGenerateBadDirectory(t *testing.T) {
 	cf := NewComposeFile()
 	cf.AddService(Service{Name: "app", Image: "nginx:alpine"})

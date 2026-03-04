@@ -38,6 +38,13 @@ type VariantApp interface {
 	SetVariant(variant string) error
 }
 
+// WebServicer is an optional interface that apps can implement to identify
+// which service handles HTTP traffic (used for reverse proxy configuration).
+type WebServicer interface {
+	// WebServiceName returns the name of the service that serves HTTP traffic.
+	WebServiceName() string
+}
+
 // ScaffoldFile represents a file to be created during project initialization.
 type ScaffoldFile struct {
 	Path    string

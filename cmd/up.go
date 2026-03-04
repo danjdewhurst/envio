@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/danjdewhurst/envio/internal/config"
+	"github.com/danjdewhurst/envio/internal/proxy"
 )
 
 var upCmd = &cobra.Command{
@@ -21,6 +22,13 @@ var upCmd = &cobra.Command{
 
 		if !config.Exists(dir) {
 			return fmt.Errorf("no envio project found in this directory — run 'envio init' first")
+		}
+
+		// Warn if project has a domain but proxy isn't running
+		cfg, err := config.Load(dir)
+		if err == nil && cfg.Domain != "" && !proxy.IsRunning() {
+			fmt.Println("Warning: project has domain configured but proxy is not running.")
+			fmt.Printf("Run 'envio proxy start' to access http://%s.test\n", cfg.Domain)
 		}
 
 		fmt.Println("Starting environment...")

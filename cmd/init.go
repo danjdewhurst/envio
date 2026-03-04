@@ -10,10 +10,13 @@ import (
 	"github.com/danjdewhurst/envio/internal/app"
 	"github.com/danjdewhurst/envio/internal/compose"
 	"github.com/danjdewhurst/envio/internal/config"
+	"github.com/danjdewhurst/envio/internal/proxy"
 )
 
 var initAddons []string
 var initVariant string
+var initDomain string
+var initNoProxy bool
 
 var initCmd = &cobra.Command{
 	Use:   "init [app]",
@@ -113,6 +116,37 @@ var initCmd = &cobra.Command{
 			}
 		}
 
+		// Proxy / domain setup
+		domain := initDomain
+		if !initNoProxy {
+			if domain == "" {
+				domain = proxy.SanitiseDomain(filepath.Base(dir))
+			}
+
+			// Determine the web service name
+			webServiceName := "app" // fallback
+			if ws, ok := selectedApp.(app.WebServicer); ok {
+				webServiceName = ws.WebServiceName()
+			}
+
+			// Add Traefik labels and remove host port mappings from the web service
+			if svc, ok := cf.Services[webServiceName]; ok {
+				svc.Labels = proxy.TraefikLabels(domain, 80)
+				svc.Ports = nil // remove host port mappings; Traefik handles routing
+				svc.Networks = append(svc.Networks, proxy.NetworkName())
+				cf.Services[webServiceName] = svc
+			}
+
+			// Add the envio-proxy external network
+			cf.AddNetwork(compose.Network{Name: proxy.NetworkName(), External: true})
+
+			// Add /etc/hosts entry for the .test domain
+			if err := proxy.AddHostsEntry(domain); err != nil {
+				fmt.Fprintf(os.Stderr, "Warning: could not add hosts entry: %v\n", err)
+				fmt.Fprintf(os.Stderr, "Add manually: 127.0.0.1  %s.test\n", domain)
+			}
+		}
+
 		// Generate docker-compose.yml
 		if err := compose.Generate(dir, cf); err != nil {
 			return fmt.Errorf("failed to generate docker-compose.yml: %w", err)
@@ -137,6 +171,7 @@ var initCmd = &cobra.Command{
 		cfg := &config.ProjectConfig{
 			App:     appName,
 			Variant: initVariant,
+			Domain:  domain,
 			Addons:  initAddons,
 		}
 		if err := config.Save(dir, cfg); err != nil {
@@ -157,6 +192,9 @@ var initCmd = &cobra.Command{
 		for _, p := range scaffoldPaths {
 			fmt.Printf("  - %s\n", p)
 		}
+		if domain != "" {
+			fmt.Printf("\nAccess your app at http://%s.test\n", domain)
+		}
 		fmt.Println("\nRun 'envio up' to start your environment.")
 
 		return nil
@@ -166,5 +204,7 @@ var initCmd = &cobra.Command{
 func init() {
 	initCmd.Flags().StringSliceVarP(&initAddons, "addon", "a", nil, "Addons to include (e.g. --addon redis --addon mysql)")
 	initCmd.Flags().StringVarP(&initVariant, "variant", "v", "", "App variant to use (e.g. --variant frankenphp)")
+	initCmd.Flags().StringVarP(&initDomain, "domain", "d", "", "Domain name for .test routing (default: directory name)")
+	initCmd.Flags().BoolVar(&initNoProxy, "no-proxy", false, "Disable Traefik proxy integration")
 	rootCmd.AddCommand(initCmd)
 }

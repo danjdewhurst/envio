@@ -92,6 +92,29 @@ func TestLoadMalformed(t *testing.T) {
 	}
 }
 
+func TestSaveAndLoadDomain(t *testing.T) {
+	dir := t.TempDir()
+
+	cfg := &ProjectConfig{
+		App:    "laravel",
+		Domain: "my-app",
+		Addons: []string{"redis"},
+	}
+
+	if err := Save(dir, cfg); err != nil {
+		t.Fatalf("Save failed: %v", err)
+	}
+
+	loaded, err := Load(dir)
+	if err != nil {
+		t.Fatalf("Load failed: %v", err)
+	}
+
+	if loaded.Domain != "my-app" {
+		t.Errorf("expected domain my-app, got %s", loaded.Domain)
+	}
+}
+
 func TestSaveNoAddons(t *testing.T) {
 	dir := t.TempDir()
 

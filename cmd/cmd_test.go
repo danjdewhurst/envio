@@ -193,6 +193,122 @@ func TestStatusCommandNoConfig(t *testing.T) {
 	}
 }
 
+func TestInitCommandWithDomain(t *testing.T) {
+	dir := t.TempDir()
+	chdir(t, dir)
+
+	initAddons = nil
+	initVariant = ""
+	initDomain = ""
+	initNoProxy = false
+
+	rootCmd.SetArgs([]string{"init", "laravel", "--domain", "myapp"})
+	if err := rootCmd.Execute(); err != nil {
+		t.Fatalf("init command with domain failed: %v", err)
+	}
+
+	// Check compose file has Traefik labels
+	data, err := os.ReadFile(filepath.Join(dir, "docker-compose.yml"))
+	if err != nil {
+		t.Fatalf("failed to read compose file: %v", err)
+	}
+	content := string(data)
+
+	if !stringContains(content, "traefik.enable") {
+		t.Error("compose file missing traefik.enable label")
+	}
+	if !stringContains(content, "Host(`myapp.test`)") {
+		t.Error("compose file missing Host rule")
+	}
+	if !stringContains(content, "envio-proxy") {
+		t.Error("compose file missing envio-proxy network")
+	}
+	if !stringContains(content, "external: true") {
+		t.Error("compose file missing external network")
+	}
+
+	// Web service should NOT have host port mappings
+	if stringContains(content, "\"80:80\"") || stringContains(content, "- 80:80") {
+		t.Error("web service should not have host port mappings when proxy is enabled")
+	}
+
+	// Check envio.yaml has domain
+	cfgData, err := os.ReadFile(filepath.Join(dir, "envio.yaml"))
+	if err != nil {
+		t.Fatalf("failed to read config: %v", err)
+	}
+	if !stringContains(string(cfgData), "domain: myapp") {
+		t.Error("config should contain domain: myapp")
+	}
+}
+
+func TestInitCommandDefaultDomainFromDir(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "My Cool App")
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		t.Fatalf("failed to create dir: %v", err)
+	}
+	chdir(t, dir)
+
+	initAddons = nil
+	initVariant = ""
+	initDomain = ""
+	initNoProxy = false
+
+	rootCmd.SetArgs([]string{"init", "laravel"})
+	if err := rootCmd.Execute(); err != nil {
+		t.Fatalf("init command failed: %v", err)
+	}
+
+	// Default domain should be sanitized from dir name
+	cfgData, err := os.ReadFile(filepath.Join(dir, "envio.yaml"))
+	if err != nil {
+		t.Fatalf("failed to read config: %v", err)
+	}
+	if !stringContains(string(cfgData), "domain: my-cool-app") {
+		t.Errorf("config should contain domain: my-cool-app, got:\n%s", string(cfgData))
+	}
+}
+
+func TestInitCommandNoProxy(t *testing.T) {
+	dir := t.TempDir()
+	chdir(t, dir)
+
+	initAddons = nil
+	initVariant = ""
+	initDomain = ""
+	initNoProxy = false
+
+	rootCmd.SetArgs([]string{"init", "laravel", "--no-proxy"})
+	if err := rootCmd.Execute(); err != nil {
+		t.Fatalf("init command with --no-proxy failed: %v", err)
+	}
+
+	// Check compose file does NOT have Traefik labels
+	data, err := os.ReadFile(filepath.Join(dir, "docker-compose.yml"))
+	if err != nil {
+		t.Fatalf("failed to read compose file: %v", err)
+	}
+	content := string(data)
+
+	if stringContains(content, "traefik.enable") {
+		t.Error("compose file should not have traefik labels with --no-proxy")
+	}
+
+	// Should still have port mappings
+	if !stringContains(content, "80:80") {
+		t.Error("compose file should preserve port mappings with --no-proxy")
+	}
+
+	// Config should have no domain
+	cfgData, err := os.ReadFile(filepath.Join(dir, "envio.yaml"))
+	if err != nil {
+		t.Fatalf("failed to read config: %v", err)
+	}
+	if stringContains(string(cfgData), "domain:") {
+		t.Error("config should not contain domain with --no-proxy")
+	}
+}
+
 func TestAppsCommand(t *testing.T) {
 	rootCmd.SetArgs([]string{"apps"})
 	if err := rootCmd.Execute(); err != nil {

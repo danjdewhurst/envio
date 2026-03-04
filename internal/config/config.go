@@ -13,6 +13,7 @@ const configFile = "envio.yaml"
 type ProjectConfig struct {
 	App     string   `yaml:"app"`
 	Variant string   `yaml:"variant,omitempty"`
+	Domain  string   `yaml:"domain,omitempty"`
 	Addons  []string `yaml:"addons,omitempty"`
 }
 

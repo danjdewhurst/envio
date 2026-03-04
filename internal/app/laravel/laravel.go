@@ -101,6 +101,13 @@ func (l *Laravel) DefaultEnv() map[string]string {
 	return env
 }
 
+func (l *Laravel) WebServiceName() string {
+	if l.variant == "frankenphp" {
+		return "app"
+	}
+	return "web"
+}
+
 func (l *Laravel) AvailableAddons() []string {
 	return []string{"mariadb", "mysql", "postgres", "redis", "meilisearch"}
 }

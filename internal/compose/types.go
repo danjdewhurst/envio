@@ -12,6 +12,7 @@ type Service struct {
 	Networks    []string          `yaml:"networks,omitempty"`
 	Command     string            `yaml:"command,omitempty"`
 	Restart     string            `yaml:"restart,omitempty"`
+	Labels      map[string]string `yaml:"labels,omitempty"`
 }
 
 // BuildConfig represents a Docker Compose build configuration.
@@ -28,8 +29,9 @@ type Volume struct {
 
 // Network represents a network in a Docker Compose file.
 type Network struct {
-	Name   string `yaml:"-"`
-	Driver string `yaml:"driver,omitempty"`
+	Name     string `yaml:"-"`
+	Driver   string `yaml:"driver,omitempty"`
+	External bool   `yaml:"external,omitempty"`
 }
 
 // ComposeFile represents a complete docker-compose.yml structure.

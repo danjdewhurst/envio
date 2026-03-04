@@ -199,6 +199,27 @@ func TestLaravelScaffoldFiles(t *testing.T) {
 	}
 }
 
+func TestLaravelWebServiceName(t *testing.T) {
+	l := New()
+
+	// Default variant: web service is "web" (nginx)
+	ws, ok := interface{}(l).(app.WebServicer)
+	if !ok {
+		t.Fatal("Laravel should implement WebServicer interface")
+	}
+	if name := ws.WebServiceName(); name != "web" {
+		t.Errorf("expected web service name 'web', got %s", name)
+	}
+
+	// FrankenPHP variant: web service is "app"
+	if err := l.SetVariant("frankenphp"); err != nil {
+		t.Fatalf("SetVariant failed: %v", err)
+	}
+	if name := ws.WebServiceName(); name != "app" {
+		t.Errorf("expected web service name 'app' for frankenphp, got %s", name)
+	}
+}
+
 func TestLaravelFrankenPHPScaffoldFiles(t *testing.T) {
 	l := New()
 	if err := l.SetVariant("frankenphp"); err != nil {
