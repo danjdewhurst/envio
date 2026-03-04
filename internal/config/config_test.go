@@ -55,6 +55,43 @@ func TestLoadMissing(t *testing.T) {
 	}
 }
 
+func TestSaveAndLoadVariant(t *testing.T) {
+	dir := t.TempDir()
+
+	cfg := &ProjectConfig{
+		App:     "laravel",
+		Variant: "frankenphp",
+		Addons:  []string{"redis"},
+	}
+
+	if err := Save(dir, cfg); err != nil {
+		t.Fatalf("Save failed: %v", err)
+	}
+
+	loaded, err := Load(dir)
+	if err != nil {
+		t.Fatalf("Load failed: %v", err)
+	}
+
+	if loaded.Variant != "frankenphp" {
+		t.Errorf("expected variant frankenphp, got %s", loaded.Variant)
+	}
+	if loaded.App != "laravel" {
+		t.Errorf("expected app laravel, got %s", loaded.App)
+	}
+}
+
+func TestLoadMalformed(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "envio.yaml"), []byte("{{invalid yaml"), 0644); err != nil {
+		t.Fatalf("failed to write malformed config: %v", err)
+	}
+	_, err := Load(dir)
+	if err == nil {
+		t.Error("Load should fail for malformed YAML")
+	}
+}
+
 func TestSaveNoAddons(t *testing.T) {
 	dir := t.TempDir()
 

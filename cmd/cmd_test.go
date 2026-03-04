@@ -163,6 +163,36 @@ func TestInitCommandInvalidVariant(t *testing.T) {
 	}
 }
 
+func TestUpCommandNoConfig(t *testing.T) {
+	dir := t.TempDir()
+	chdir(t, dir)
+
+	rootCmd.SetArgs([]string{"up"})
+	if err := rootCmd.Execute(); err == nil {
+		t.Error("up should fail without envio.yaml")
+	}
+}
+
+func TestDownCommandNoConfig(t *testing.T) {
+	dir := t.TempDir()
+	chdir(t, dir)
+
+	rootCmd.SetArgs([]string{"down"})
+	if err := rootCmd.Execute(); err == nil {
+		t.Error("down should fail without envio.yaml")
+	}
+}
+
+func TestStatusCommandNoConfig(t *testing.T) {
+	dir := t.TempDir()
+	chdir(t, dir)
+
+	rootCmd.SetArgs([]string{"status"})
+	if err := rootCmd.Execute(); err == nil {
+		t.Error("status should fail without envio.yaml")
+	}
+}
+
 func TestAppsCommand(t *testing.T) {
 	rootCmd.SetArgs([]string{"apps"})
 	if err := rootCmd.Execute(); err != nil {

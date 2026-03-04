@@ -20,10 +20,24 @@ func TestRedisServices(t *testing.T) {
 	}
 }
 
+func TestRedisVolumes(t *testing.T) {
+	r := New()
+	volumes := r.Volumes()
+	if len(volumes) != 1 || volumes[0].Name != "redis_data" {
+		t.Errorf("expected redis_data volume, got %v", volumes)
+	}
+}
+
 func TestRedisEnvVars(t *testing.T) {
 	r := New()
 	env := r.EnvVars()
-	if env["REDIS_HOST"] != "redis" {
-		t.Errorf("expected REDIS_HOST=redis, got %s", env["REDIS_HOST"])
+	expected := map[string]string{
+		"REDIS_HOST": "redis",
+		"REDIS_PORT": "6379",
+	}
+	for key, want := range expected {
+		if got := env[key]; got != want {
+			t.Errorf("expected %s=%s, got %s", key, want, got)
+		}
 	}
 }

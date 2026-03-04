@@ -82,6 +82,16 @@ func TestGenerate(t *testing.T) {
 	}
 }
 
+func TestGenerateBadDirectory(t *testing.T) {
+	cf := NewComposeFile()
+	cf.AddService(Service{Name: "app", Image: "nginx:alpine"})
+
+	err := Generate("/nonexistent/path/that/does/not/exist", cf)
+	if err == nil {
+		t.Error("Generate should fail for non-existent directory")
+	}
+}
+
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && searchString(s, substr)
 }

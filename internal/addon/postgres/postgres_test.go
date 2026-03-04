@@ -23,10 +23,28 @@ func TestPostgresServices(t *testing.T) {
 	}
 }
 
+func TestPostgresVolumes(t *testing.T) {
+	p := New()
+	volumes := p.Volumes()
+	if len(volumes) != 1 || volumes[0].Name != "postgres_data" {
+		t.Errorf("expected postgres_data volume, got %v", volumes)
+	}
+}
+
 func TestPostgresEnvVars(t *testing.T) {
 	p := New()
 	env := p.EnvVars()
-	if env["DB_CONNECTION"] != "pgsql" {
-		t.Errorf("expected DB_CONNECTION=pgsql, got %s", env["DB_CONNECTION"])
+	expected := map[string]string{
+		"DB_CONNECTION": "pgsql",
+		"DB_HOST":       "postgres",
+		"DB_PORT":       "5432",
+		"DB_DATABASE":   "envio",
+		"DB_USERNAME":   "envio",
+		"DB_PASSWORD":   "secret",
+	}
+	for key, want := range expected {
+		if got := env[key]; got != want {
+			t.Errorf("expected %s=%s, got %s", key, want, got)
+		}
 	}
 }

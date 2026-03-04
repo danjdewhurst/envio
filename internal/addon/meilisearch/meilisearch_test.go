@@ -20,10 +20,25 @@ func TestMeilisearchServices(t *testing.T) {
 	}
 }
 
+func TestMeilisearchVolumes(t *testing.T) {
+	m := New()
+	volumes := m.Volumes()
+	if len(volumes) != 1 || volumes[0].Name != "meilisearch_data" {
+		t.Errorf("expected meilisearch_data volume, got %v", volumes)
+	}
+}
+
 func TestMeilisearchEnvVars(t *testing.T) {
 	m := New()
 	env := m.EnvVars()
-	if env["SCOUT_DRIVER"] != "meilisearch" {
-		t.Errorf("expected SCOUT_DRIVER=meilisearch, got %s", env["SCOUT_DRIVER"])
+	expected := map[string]string{
+		"SCOUT_DRIVER":             "meilisearch",
+		"MEILISEARCH_HOST":         "http://meilisearch:7700",
+		"MEILISEARCH_NO_ANALYTICS": "true",
+	}
+	for key, want := range expected {
+		if got := env[key]; got != want {
+			t.Errorf("expected %s=%s, got %s", key, want, got)
+		}
 	}
 }
