@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"github.com/danjdewhurst/envio/internal/registry"
 	"github.com/spf13/cobra"
+
+	"github.com/danjdewhurst/envio/internal/registry"
 )
 
 var reg *registry.Registry

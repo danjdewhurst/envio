@@ -5,7 +5,7 @@ build:
 
 fmt:
 	gofmt -l -w .
-	goimports -l -w .
+	goimports -local github.com/danjdewhurst/envio -l -w .
 
 lint:
 	golangci-lint run ./...

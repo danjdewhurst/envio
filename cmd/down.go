@@ -5,8 +5,9 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/danjdewhurst/envio/internal/config"
 	"github.com/spf13/cobra"
+
+	"github.com/danjdewhurst/envio/internal/config"
 )
 
 var downCmd = &cobra.Command{

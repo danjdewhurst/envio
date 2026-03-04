@@ -6,11 +6,25 @@ import (
 	"testing"
 )
 
+func chdir(t *testing.T, dir string) {
+	t.Helper()
+	originalDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("failed to get working directory: %v", err)
+	}
+	if err := os.Chdir(dir); err != nil {
+		t.Fatalf("failed to chdir to %s: %v", dir, err)
+	}
+	t.Cleanup(func() {
+		if err := os.Chdir(originalDir); err != nil {
+			t.Fatalf("failed to restore working directory: %v", err)
+		}
+	})
+}
+
 func TestInitCommand(t *testing.T) {
 	dir := t.TempDir()
-	originalDir, _ := os.Getwd()
-	os.Chdir(dir)
-	defer os.Chdir(originalDir)
+	chdir(t, dir)
 
 	rootCmd.SetArgs([]string{"init", "laravel", "--addon", "redis"})
 	if err := rootCmd.Execute(); err != nil {
@@ -52,9 +66,7 @@ func stringContains(s, substr string) bool {
 
 func TestInitCommandUnknownApp(t *testing.T) {
 	dir := t.TempDir()
-	originalDir, _ := os.Getwd()
-	os.Chdir(dir)
-	defer os.Chdir(originalDir)
+	chdir(t, dir)
 
 	rootCmd.SetArgs([]string{"init", "nonexistent"})
 	if err := rootCmd.Execute(); err == nil {
@@ -64,9 +76,7 @@ func TestInitCommandUnknownApp(t *testing.T) {
 
 func TestInitCommandInvalidAddon(t *testing.T) {
 	dir := t.TempDir()
-	originalDir, _ := os.Getwd()
-	os.Chdir(dir)
-	defer os.Chdir(originalDir)
+	chdir(t, dir)
 
 	rootCmd.SetArgs([]string{"init", "laravel", "--addon", "nonexistent"})
 	if err := rootCmd.Execute(); err == nil {
@@ -76,9 +86,7 @@ func TestInitCommandInvalidAddon(t *testing.T) {
 
 func TestInitCommandDuplicateProject(t *testing.T) {
 	dir := t.TempDir()
-	originalDir, _ := os.Getwd()
-	os.Chdir(dir)
-	defer os.Chdir(originalDir)
+	chdir(t, dir)
 
 	// Reset flags from previous tests
 	initAddons = nil
