@@ -38,7 +38,9 @@ func TestExists(t *testing.T) {
 		t.Error("Exists should return false for empty directory")
 	}
 
-	os.WriteFile(filepath.Join(dir, "envio.yaml"), []byte("app: test\n"), 0644)
+	if err := os.WriteFile(filepath.Join(dir, "envio.yaml"), []byte("app: test\n"), 0644); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
 
 	if !Exists(dir) {
 		t.Error("Exists should return true after creating config")

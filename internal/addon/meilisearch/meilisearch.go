@@ -7,8 +7,8 @@ type Meilisearch struct{}
 func New() *Meilisearch { return &Meilisearch{} }
 
 func (m *Meilisearch) Name() string        { return "meilisearch" }
-func (m *Meilisearch) DisplayName() string  { return "Meilisearch" }
-func (m *Meilisearch) Description() string  { return "Meilisearch search engine" }
+func (m *Meilisearch) DisplayName() string { return "Meilisearch" }
+func (m *Meilisearch) Description() string { return "Meilisearch search engine" }
 
 func (m *Meilisearch) Services() []compose.Service {
 	return []compose.Service{
@@ -34,8 +34,8 @@ func (m *Meilisearch) Volumes() []compose.Volume {
 
 func (m *Meilisearch) EnvVars() map[string]string {
 	return map[string]string{
-		"SCOUT_DRIVER":       "meilisearch",
-		"MEILISEARCH_HOST":   "http://meilisearch:7700",
+		"SCOUT_DRIVER":             "meilisearch",
+		"MEILISEARCH_HOST":         "http://meilisearch:7700",
 		"MEILISEARCH_NO_ANALYTICS": "true",
 	}
 }

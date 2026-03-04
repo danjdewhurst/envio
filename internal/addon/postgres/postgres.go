@@ -7,8 +7,8 @@ type Postgres struct{}
 func New() *Postgres { return &Postgres{} }
 
 func (p *Postgres) Name() string        { return "postgres" }
-func (p *Postgres) DisplayName() string  { return "PostgreSQL" }
-func (p *Postgres) Description() string  { return "PostgreSQL 16 database server" }
+func (p *Postgres) DisplayName() string { return "PostgreSQL" }
+func (p *Postgres) Description() string { return "PostgreSQL 16 database server" }
 
 func (p *Postgres) Services() []compose.Service {
 	return []compose.Service{
