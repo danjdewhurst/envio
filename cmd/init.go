@@ -145,6 +145,17 @@ var initCmd = &cobra.Command{
 				fmt.Fprintf(os.Stderr, "Warning: could not add hosts entry: %v\n", err)
 				fmt.Fprintf(os.Stderr, "Add manually: 127.0.0.1  %s.test\n", domain)
 			}
+
+			// Generate TLS certificate if mkcert is available
+			if proxy.IsMkcertInstalled() {
+				if err := proxy.GenerateCert(domain); err != nil {
+					fmt.Fprintf(os.Stderr, "Warning: could not generate TLS certificate: %v\n", err)
+				} else if err := proxy.RegisterDomainCert(domain); err != nil {
+					fmt.Fprintf(os.Stderr, "Warning: could not register TLS certificate: %v\n", err)
+				}
+			} else {
+				fmt.Fprintln(os.Stderr, "Tip: install mkcert and run 'envio proxy setup-tls' for trusted HTTPS")
+			}
 		}
 
 		// Generate docker-compose.yml
@@ -193,7 +204,11 @@ var initCmd = &cobra.Command{
 			fmt.Printf("  - %s\n", p)
 		}
 		if domain != "" {
-			fmt.Printf("\nAccess your app at http://%s.test\n", domain)
+			scheme := "http"
+			if proxy.IsMkcertInstalled() {
+				scheme = "https"
+			}
+			fmt.Printf("\nAccess your app at %s://%s.test\n", scheme, domain)
 		}
 		fmt.Println("\nRun 'envio up' to start your environment.")
 

@@ -44,11 +44,16 @@ envio down
 | `envio status` | Show app config and running container status |
 | `envio apps` | List available application types |
 | `envio addons` | List available addons |
+| `envio proxy start` | Start the shared Traefik reverse proxy |
+| `envio proxy stop` | Stop the proxy |
+| `envio proxy status` | Check if the proxy is running |
+| `envio proxy setup-dns` | Configure dnsmasq for `.test` domains (macOS) |
+| `envio proxy setup-tls` | Install the mkcert root CA for trusted HTTPS |
 
 ### `envio init`
 
 ```bash
-envio init <app> [--variant <name>] [--addon <name>]...
+envio init <app> [--variant <name>] [--addon <name>]... [--domain <name>] [--no-proxy]
 ```
 
 Generates a `docker-compose.yml` and `envio.yaml` in the current directory.
@@ -56,6 +61,39 @@ Generates a `docker-compose.yml` and `envio.yaml` in the current directory.
 **Flags:**
 - `--variant, -v` — Use an app variant (e.g. `--variant frankenphp`)
 - `--addon, -a` — Add one or more addons (repeatable)
+- `--domain, -d` — Domain name for `.test` routing (defaults to directory name)
+- `--no-proxy` — Disable Traefik proxy integration
+
+### Local `.test` Domains and HTTPS
+
+Envio uses a shared [Traefik](https://traefik.io/) reverse proxy to route `*.test` domains to your project containers. When you run `envio init`, Traefik labels are automatically added to the web service and HTTP is redirected to HTTPS.
+
+**Setting up HTTPS with locally-trusted certificates:**
+
+1. Install [mkcert](https://github.com/FiloSottile/mkcert):
+   ```bash
+   brew install mkcert
+   ```
+
+2. Install the local CA:
+   ```bash
+   envio proxy setup-tls
+   ```
+
+3. Start the proxy:
+   ```bash
+   envio proxy start
+   ```
+
+4. Initialise a project — a certificate is generated automatically:
+   ```bash
+   envio init laravel --domain myapp
+   envio up
+   ```
+
+5. Visit `https://myapp.test` — no browser warnings.
+
+If mkcert is not installed, everything still works over HTTP. Envio will print a tip suggesting you set up TLS.
 
 ## Supported Apps
 
@@ -176,6 +214,7 @@ envio/
 │   ├── up.go                          # envio up
 │   ├── down.go                        # envio down
 │   ├── status.go                      # envio status
+│   ├── proxy.go                       # envio proxy start/stop/status/setup-*
 │   ├── apps.go                        # envio apps
 │   └── addons.go                      # envio addons
 ├── internal/
@@ -190,6 +229,7 @@ envio/
 │   │   └── meilisearch/
 │   ├── compose/                       # Docker Compose types + YAML generation
 │   ├── config/                        # Project config (envio.yaml)
+│   ├── proxy/                         # Traefik proxy, TLS/mkcert integration
 │   └── registry/                      # App/Addon discovery registry
 ```
 

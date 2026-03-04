@@ -39,8 +39,14 @@ func TestWriteComposeFile(t *testing.T) {
 		"--providers.docker.exposedbydefault=false",
 		"--providers.docker.network=envio-proxy",
 		"--entrypoints.web.address=:80",
+		"--entrypoints.websecure.address=:443",
+		"--providers.file.filename=/etc/traefik/tls.yml",
+		"--providers.file.watch=true",
 		"80:80",
+		"443:443",
 		"/var/run/docker.sock:/var/run/docker.sock:ro",
+		"/certs:ro",
+		"/etc/traefik/tls.yml:ro",
 		"envio-proxy",
 		"external: true",
 		"unless-stopped",
@@ -78,9 +84,16 @@ func TestTraefikLabels(t *testing.T) {
 	labels := TraefikLabels("myapp", 80)
 
 	expected := map[string]string{
-		"traefik.enable":                                       "true",
-		"traefik.http.routers.myapp.rule":                      "Host(`myapp.test`)",
-		"traefik.http.services.myapp.loadbalancer.server.port": "80",
+		"traefik.enable":                                                      "true",
+		"traefik.http.routers.myapp.rule":                                     "Host(`myapp.test`)",
+		"traefik.http.routers.myapp.entrypoints":                              "web",
+		"traefik.http.routers.myapp.middlewares":                              "redirect-to-https",
+		"traefik.http.routers.myapp-tls.rule":                                 "Host(`myapp.test`)",
+		"traefik.http.routers.myapp-tls.entrypoints":                          "websecure",
+		"traefik.http.routers.myapp-tls.tls":                                  "true",
+		"traefik.http.services.myapp.loadbalancer.server.port":                "80",
+		"traefik.http.middlewares.redirect-to-https.redirectscheme.scheme":    "https",
+		"traefik.http.middlewares.redirect-to-https.redirectscheme.permanent": "true",
 	}
 
 	for k, v := range expected {

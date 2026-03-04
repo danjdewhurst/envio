@@ -27,8 +27,12 @@ var upCmd = &cobra.Command{
 		// Warn if project has a domain but proxy isn't running
 		cfg, err := config.Load(dir)
 		if err == nil && cfg.Domain != "" && !proxy.IsRunning() {
+			scheme := "http"
+			if proxy.IsMkcertInstalled() {
+				scheme = "https"
+			}
 			fmt.Println("Warning: project has domain configured but proxy is not running.")
-			fmt.Printf("Run 'envio proxy start' to access http://%s.test\n", cfg.Domain)
+			fmt.Printf("Run 'envio proxy start' to access %s://%s.test\n", scheme, cfg.Domain)
 		}
 
 		fmt.Println("Starting environment...")

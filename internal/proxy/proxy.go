@@ -28,7 +28,15 @@ func WriteComposeFile(dir string) error {
 		return fmt.Errorf("failed to create proxy directory: %w", err)
 	}
 
-	content := `services:
+	// Ensure traefik-tls.yml exists so Docker doesn't create a directory mount
+	if err := EnsureTLSConfig(); err != nil {
+		return fmt.Errorf("failed to ensure TLS config: %w", err)
+	}
+
+	certsDir := CertsDir()
+	tlsConfigPath := TLSConfigPath()
+
+	content := fmt.Sprintf(`services:
   traefik:
     image: traefik:v3.3
     command:
@@ -36,17 +44,23 @@ func WriteComposeFile(dir string) error {
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=envio-proxy"
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--providers.file.filename=/etc/traefik/tls.yml"
+      - "--providers.file.watch=true"
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "%s:/certs:ro"
+      - "%s:/etc/traefik/tls.yml:ro"
     networks:
       - envio-proxy
     restart: unless-stopped
 networks:
   envio-proxy:
     external: true
-`
+`, certsDir, tlsConfigPath)
 
 	return os.WriteFile(filepath.Join(dir, "docker-compose.yml"), []byte(content), 0644)
 }
@@ -123,7 +137,18 @@ func SanitiseDomain(s string) string {
 func TraefikLabels(domain string, port int) map[string]string {
 	return map[string]string{
 		"traefik.enable": "true",
-		fmt.Sprintf("traefik.http.routers.%s.rule", domain):                      fmt.Sprintf("Host(`%s.test`)", domain),
+		// HTTP router — redirects to HTTPS
+		fmt.Sprintf("traefik.http.routers.%s.rule", domain):        fmt.Sprintf("Host(`%s.test`)", domain),
+		fmt.Sprintf("traefik.http.routers.%s.entrypoints", domain): "web",
+		fmt.Sprintf("traefik.http.routers.%s.middlewares", domain): "redirect-to-https",
+		// HTTPS router
+		fmt.Sprintf("traefik.http.routers.%s-tls.rule", domain):        fmt.Sprintf("Host(`%s.test`)", domain),
+		fmt.Sprintf("traefik.http.routers.%s-tls.entrypoints", domain): "websecure",
+		fmt.Sprintf("traefik.http.routers.%s-tls.tls", domain):         "true",
+		// Service
 		fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port", domain): fmt.Sprintf("%d", port),
+		// Redirect middleware
+		"traefik.http.middlewares.redirect-to-https.redirectscheme.scheme":    "https",
+		"traefik.http.middlewares.redirect-to-https.redirectscheme.permanent": "true",
 	}
 }

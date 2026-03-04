@@ -214,17 +214,24 @@ func TestInitCommandWithDomain(t *testing.T) {
 	}
 	content := string(data)
 
-	if !stringContains(content, "traefik.enable") {
-		t.Error("compose file missing traefik.enable label")
-	}
-	if !stringContains(content, "Host(`myapp.test`)") {
-		t.Error("compose file missing Host rule")
-	}
-	if !stringContains(content, "envio-proxy") {
-		t.Error("compose file missing envio-proxy network")
-	}
-	if !stringContains(content, "external: true") {
-		t.Error("compose file missing external network")
+	for _, want := range []struct {
+		label string
+		desc  string
+	}{
+		{"traefik.enable", "traefik.enable label"},
+		{"Host(`myapp.test`)", "Host rule"},
+		{"envio-proxy", "envio-proxy network"},
+		{"external: true", "external network"},
+		{"routers.myapp.entrypoints: web", "HTTP router entrypoint"},
+		{"routers.myapp.middlewares: redirect-to-https", "HTTP redirect middleware"},
+		{"routers.myapp-tls.entrypoints: websecure", "HTTPS router entrypoint"},
+		{"routers.myapp-tls.tls", "HTTPS TLS flag"},
+		{"redirectscheme.scheme: https", "redirect scheme"},
+		{"redirectscheme.permanent", "redirect permanent"},
+	} {
+		if !stringContains(content, want.label) {
+			t.Errorf("compose file missing %s (%q)", want.desc, want.label)
+		}
 	}
 
 	// Web service should NOT have host port mappings

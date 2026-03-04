@@ -21,7 +21,7 @@ var proxyStartCmd = &cobra.Command{
 		if err := proxy.Start(); err != nil {
 			return fmt.Errorf("failed to start proxy: %w", err)
 		}
-		fmt.Println("Proxy is running. Traefik is listening on port 80.")
+		fmt.Println("Proxy is running. Traefik is listening on ports 80 and 443.")
 		return nil
 	},
 }
@@ -59,10 +59,19 @@ var proxySetupDNSCmd = &cobra.Command{
 	},
 }
 
+var proxySetupTLSCmd = &cobra.Command{
+	Use:   "setup-tls",
+	Short: "Install the mkcert root CA for locally-trusted HTTPS certificates",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return proxy.SetupTLS()
+	},
+}
+
 func init() {
 	proxyCmd.AddCommand(proxyStartCmd)
 	proxyCmd.AddCommand(proxyStopCmd)
 	proxyCmd.AddCommand(proxyStatusCmd)
 	proxyCmd.AddCommand(proxySetupDNSCmd)
+	proxyCmd.AddCommand(proxySetupTLSCmd)
 	rootCmd.AddCommand(proxyCmd)
 }
