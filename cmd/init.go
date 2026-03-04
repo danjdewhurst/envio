@@ -66,6 +66,12 @@ var initCmd = &cobra.Command{
 			cf.AddVolume(vol)
 		}
 
+		// Collect environment variables from app defaults and addons
+		env := make(map[string]string)
+		for k, v := range app.DefaultEnv() {
+			env[k] = v
+		}
+
 		for _, addonName := range initAddons {
 			addon, _ := reg.GetAddon(addonName)
 			for _, svc := range addon.Services() {
@@ -73,6 +79,22 @@ var initCmd = &cobra.Command{
 			}
 			for _, vol := range addon.Volumes() {
 				cf.AddVolume(vol)
+			}
+			for k, v := range addon.EnvVars() {
+				env[k] = v
+			}
+		}
+
+		// Inject collected env vars into the app service
+		if len(env) > 0 {
+			if svc, ok := cf.Services["app"]; ok {
+				if svc.Environment == nil {
+					svc.Environment = make(map[string]string)
+				}
+				for k, v := range env {
+					svc.Environment[k] = v
+				}
+				cf.Services["app"] = svc
 			}
 		}
 
