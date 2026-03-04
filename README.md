@@ -48,26 +48,39 @@ envio down
 ### `envio init`
 
 ```bash
-envio init <app> [--addon <name>]...
+envio init <app> [--variant <name>] [--addon <name>]...
 ```
 
 Generates a `docker-compose.yml` and `envio.yaml` in the current directory.
 
 **Flags:**
+- `--variant, -v` — Use an app variant (e.g. `--variant frankenphp`)
 - `--addon, -a` — Add one or more addons (repeatable)
 
 ## Supported Apps
 
-| App | Description |
-|-----|-------------|
-| `laravel` | PHP Laravel with Nginx and PHP-FPM |
+| App | Description | Variants |
+|-----|-------------|----------|
+| `laravel` | PHP Laravel with Nginx and PHP-FPM | `frankenphp` |
 
 ### Laravel
 
-The Laravel app generates two services:
+By default, the Laravel app generates two services:
 
 - **app** — `php:8.3-fpm` with your project mounted at `/var/www/html`
 - **web** — `nginx:alpine` serving on port 80, proxying to the app service
+
+#### FrankenPHP Variant
+
+Use `--variant frankenphp` to replace Nginx + PHP-FPM with a single [FrankenPHP](https://frankenphp.dev/) container:
+
+```bash
+envio init laravel --variant frankenphp
+```
+
+This generates a single service:
+
+- **app** — `dunglas/frankenphp:latest-php8.3` serving on ports 80 and 443, with your project mounted at `/app`
 
 #### Environment Variables
 
