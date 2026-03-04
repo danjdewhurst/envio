@@ -62,6 +62,44 @@ Generates a `docker-compose.yml` and `envio.yaml` in the current directory.
 |-----|-------------|
 | `laravel` | PHP Laravel with Nginx and PHP-FPM |
 
+### Laravel
+
+The Laravel app generates two services:
+
+- **app** — `php:8.3-fpm` with your project mounted at `/var/www/html`
+- **web** — `nginx:alpine` serving on port 80, proxying to the app service
+
+#### Environment Variables
+
+Envio automatically sets environment variables on the `app` service. Laravel's defaults are applied first, then any addon-specific variables are merged in (addons override on conflict).
+
+**Default environment:**
+
+| Variable | Value |
+|----------|-------|
+| `APP_ENV` | `local` |
+| `APP_DEBUG` | `true` |
+| `APP_PORT` | `80` |
+
+**With addons enabled**, additional variables are injected. For example:
+
+```bash
+envio init laravel --addon mysql --addon redis
+```
+
+This adds the MySQL and Redis env vars to the `app` service automatically:
+
+| Addon | Variables |
+|-------|-----------|
+| MySQL | `DB_CONNECTION=mysql`, `DB_HOST=mysql`, `DB_PORT=3306`, `DB_DATABASE=envio`, `DB_USERNAME=envio`, `DB_PASSWORD=secret` |
+| PostgreSQL | `DB_CONNECTION=pgsql`, `DB_HOST=postgres`, `DB_PORT=5432`, `DB_DATABASE=envio`, `DB_USERNAME=envio`, `DB_PASSWORD=secret` |
+| Redis | `REDIS_HOST=redis`, `REDIS_PORT=6379` |
+| Meilisearch | `SCOUT_DRIVER=meilisearch`, `MEILISEARCH_HOST=http://meilisearch:7700`, `MEILISEARCH_NO_ANALYTICS=true` |
+
+#### Compatible Addons
+
+`mysql`, `postgres`, `redis`, `meilisearch`
+
 ## Supported Addons
 
 | Addon | Description |
