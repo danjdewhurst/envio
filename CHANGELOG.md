@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/danjdewhurst/envio/compare/v1.0.0...v1.1.0) (2026-03-04)
+
+
+### Features
+
+* add package doc comment to version package ([11b2fa5](https://github.com/danjdewhurst/envio/commit/11b2fa593eceaeeacff002a9a3cff3f8efd6c088))
+
 ## 1.0.0 (2026-03-04)
 
 
